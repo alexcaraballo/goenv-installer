@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Based on https://github.com/go-nv/goenv#basic-git-installation
+
+set -e
+
+GOENV_ROOT="${GOENV_ROOT:-$HOME/.goenv}"
+
+echo "📦 Cloning goenv into $GOENV_ROOT..."
+if [ ! -d "$GOENV_ROOT/.git" ]; then
+  git clone https://github.com/go-nv/goenv.git "$GOENV_ROOT"
+else
+  echo "✅ goenv already cloned, skipping..."
+fi
+
+echo "📂 Installing goenv plugins..."
+mkdir -p "$GOENV_ROOT/plugins"
+
+# Add goenv to shell profile if not already added
+echo ""
+echo "💬 Choose your shell to configure goenv:"
+echo "  1) Bash (~/.bashrc)"
+echo "  2) Zsh  (~/.zshrc)"
+echo "  3) Profile (~/.profile)"
+read -rp "Enter 1, 2, or 3: " shell_choice
+
+case "$shell_choice" in
+  1) SHELL_PROFILE="$HOME/.bashrc" ;;
+  2) SHELL_PROFILE="$HOME/.zshrc" ;;
+  3) SHELL_PROFILE="$HOME/.profile" ;;
+  *)
+    echo "❌ Invalid choice. Skipping shell profile configuration."
+    SHELL_PROFILE=""
+    ;;
+esac
+
+if [ -n "$SHELL_PROFILE" ]; then
+  if ! grep -q 'goenv init' "$SHELL_PROFILE"; then
+    echo "🛠 Updating $SHELL_PROFILE with goenv paths..."
+    {
+      echo ''
+      echo '# goenv configuration'
+      echo 'export GOENV_ROOT="$HOME/.goenv"'
+      echo 'export PATH="$GOENV_ROOT/bin:$PATH"'
+      echo 'eval "$(goenv init -)"'
+    } >> "$SHELL_PROFILE"
+    echo "✅ goenv paths added to $SHELL_PROFILE"
+  else
+    echo "✅ goenv already configured in $SHELL_PROFILE, skipping..."
+  fi
+else
+  echo "⚠️ Could not detect shell profile. Please add goenv manually:"
+  echo '  export GOENV_ROOT="$HOME/.goenv"'
+  echo '  export PATH="$GOENV_ROOT/bin:$PATH"'
+  echo '  eval "$(goenv init -)"'
+fi
+
+echo "🎉 goenv installation complete. Restart your terminal or run:"
+echo "  source $SHELL_PROFILE"
